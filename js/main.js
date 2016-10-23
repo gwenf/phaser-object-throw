@@ -10,6 +10,7 @@ var GameState = {
     this.game.world.setBounds(0,0,360,592);
 
     this.MINIMUM_SWIPE_LENGTH = 50;
+    this.points = 0;
   },
 
   preload: function() {
@@ -22,6 +23,13 @@ var GameState = {
 
   create: function() {
   	this.game.stage.backgroundColor = '#FA2';
+
+    this.pointText = game.add.text(game.world.centerX, game.world.centerY, "You have recycled \n0 items!", {
+        font: "16px Arial",
+        fill: "#ff0044",
+        align: "center"
+    });
+    this.pointText.anchor.setTo(0.5, 0.5);
 
   	// this.game.input.onDown.add(this.start_swipe, this);
    //  this.game.input.onUp.add(this.end_swipe, this);
@@ -40,12 +48,21 @@ var GameState = {
     //bins that go on the shelf at the top
     //TODO: need to add these into a group
     this.bin1 = this.add.sprite(10, 31, 'rectangle');
+    this.game.physics.arcade.enable(this.bin1);
+    this.bin1.body.immovable = true;
+    this.bin1.body.allowGravity = false;
     this.bin1.scale.setTo(1.5, 1);
 
     this.bin2 = this.add.sprite(130, 31, 'rectangle');
+    this.game.physics.arcade.enable(this.bin2);
+    this.bin2.body.immovable = true;
+    this.bin2.body.allowGravity = false;
     this.bin2.scale.setTo(1.5, 1);
 
     this.bin3 = this.add.sprite(250, 31, 'rectangle');
+    this.game.physics.arcade.enable(this.bin3);
+    this.bin3.body.immovable = true;
+    this.bin3.body.allowGravity = false;
     this.bin3.scale.setTo(1.5, 1);
 
     // this.item = this.add.sprite(360, 540, 'item');
@@ -53,6 +70,7 @@ var GameState = {
     // this.item.body.velocity.x = -80;
     // this.item.anchor.setTo(1, 1);
 
+    //TODO: need to have enemies in a group so I can add more
     this.enemy = this.add.sprite(0, 200, 'enemy');
     this.game.physics.arcade.enable(this.enemy);
     this.enemy.body.immovable = true;
@@ -73,7 +91,9 @@ var GameState = {
         this.game.physics.arcade.collide(this.items, this.ground);
         // this.game.physics.arcade.collide(this.player, this.platforms);
 
-        this.game.physics.arcade.overlap(this.items, this.bin1, this.scorePoint);
+        this.game.physics.arcade.overlap(this.items, this.bin1, this.scorePoint, null, this);
+        this.game.physics.arcade.overlap(this.items, this.bin2, this.scorePoint, null, this);
+        this.game.physics.arcade.overlap(this.items, this.bin3, this.scorePoint, null, this);
         // this.game.physics.arcade.overlap(this.items, this.bin2, this.scorePoint);
         // this.game.physics.arcade.overlap(this.items, this.bin3, this.scorePoint);
         // game.physics.arcade.overlap(this.items, this.bin1, this.collisionHandler, null, this);
@@ -112,9 +132,13 @@ var GameState = {
     item.body.velocity.x = -50;
   },
 
-  scorePoint: function(){
-  	console.log('you scored')
-  },
+    scorePoint: function(bin, item){
+        this.points++;
+        item.kill();
+        this.pointText.setText("You have recycled \n" + this.points + " items!");
+        // game.input.onDown.addOnce(this.updatePointText, this);
+      	console.log('you scored', bin, this.points)
+    },
     killItem: function(item, enemy){
         item.kill();
         console.log('killed');

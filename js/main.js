@@ -69,24 +69,26 @@ var GameState = {
 
   },
 
-  update: function() {
-    this.game.physics.arcade.collide(this.items, this.ground);
-    // this.game.physics.arcade.collide(this.player, this.platforms);
+    update: function() {
+        this.game.physics.arcade.collide(this.items, this.ground);
+        // this.game.physics.arcade.collide(this.player, this.platforms);
 
-    this.game.physics.arcade.overlap(this.items, this.bin1, this.scorePoint);
-    this.game.physics.arcade.overlap(this.items, this.bin2, this.scorePoint);
-    this.game.physics.arcade.overlap(this.items, this.bin3, this.scorePoint);
-    // this.game.physics.arcade.overlap(this.player, this.barrels, this.killPlayer);
+        this.game.physics.arcade.overlap(this.items, this.bin1, this.scorePoint);
+        // this.game.physics.arcade.overlap(this.items, this.bin2, this.scorePoint);
+        // this.game.physics.arcade.overlap(this.items, this.bin3, this.scorePoint);
+        // game.physics.arcade.overlap(this.items, this.bin1, this.collisionHandler, null, this);
+        // this.game.physics.arcade.overlap(this.player, this.barrels, this.killPlayer);
 
-    // this.enemy.body.collideWorldBounds = true;
-    // this.enemy.body.velocity.x = 50;
+        // this.enemy.body.collideWorldBounds = true;
+        // this.enemy.body.velocity.x = 50;
 
-    this.items.forEach(function(element){
-      if(element.x < 0) {
-        element.kill();
-      }
-    }, this);
-  },
+        this.items.forEach(function(element){
+            this.game.physics.arcade.overlap(element, this.enemy, this.killItem);
+            if(element.x < 0) {
+                element.kill();
+            }
+        }, this);
+    },
 
   createItem: function() {
     //give me the first dead sprite
@@ -113,6 +115,10 @@ var GameState = {
   scorePoint: function(){
   	console.log('you scored')
   },
+    killItem: function(item, enemy){
+        item.kill();
+        console.log('killed');
+    },
     start_swipe: function (pointer) {
 	    "use strict";
 	    this.start_swipe_point = new Phaser.Point(pointer.x, pointer.y);
@@ -171,6 +177,16 @@ var GameState = {
         //     console.log('input disabled on', sprite.key);
         //     // sprite.input.enabled = false;
         //     // sprite.sendToBack();
+        // }
+    },
+    collisionHandler: function (items, bin) {
+        console.log('collision')
+        //  If the player collides with the chillis then they get eaten :)
+        //  The chilli frame ID is 17
+
+        // if (veg.frame == 17)
+        // {
+        //     veg.kill();
         // }
     }
 };

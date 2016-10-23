@@ -23,8 +23,8 @@ var GameState = {
   create: function() {
   	this.game.stage.backgroundColor = '#FA2';
 
-  	this.game.input.onDown.add(this.start_swipe, this);
-    this.game.input.onUp.add(this.end_swipe, this);
+  	// this.game.input.onDown.add(this.start_swipe, this);
+   //  this.game.input.onUp.add(this.end_swipe, this);
 
     this.ground = this.add.sprite(0, 540, 'ground');
     this.game.physics.arcade.enable(this.ground);
@@ -81,30 +81,6 @@ var GameState = {
     // this.enemy.body.collideWorldBounds = true;
     // this.enemy.body.velocity.x = 50;
 
-    // var myOptions = {};
-    // var hammertime = new Hammer(this.items, myOptions);
-	// hammertime.on('swipeleft', function(ev) {
-	// 	console.log(ev);
-	// });
-    // Hammer(this.items).on("swipeleft", function() {
-    //       // this.items.animate({left: "-=100"}, 500)
-    // });
-    // create a manager for that element
-	// var mc = new Hammer.Manager(this.items);
-
-	// create a recognizer
-	// var Rotate = new Hammer.Rotate();
-
-	// // add the recognizer
-	// mc.add(Rotate);
-
-	// // subscribe to events
-	// mc.on('rotate', function(e) {
-	//     // do something cool
-	//     var rotation = Math.round(e.rotation);    
-	//     stage.style.transform = 'rotate('+rotation+'deg)';
-	// });
-
     this.items.forEach(function(element){
       if(element.x < 0) {
         element.kill();
@@ -124,13 +100,18 @@ var GameState = {
     // item.body.bounce.set(1, 0);
     item.inputEnabled = true;
     item.input.enableDrag(true);
+    item.events.onDragStart.add(this.onDragStart, this);
+    item.events.onDragUpdate.add(this.dragUpdate, this);
+    item.events.onDragStop.add(this.onDragStop, this);
+    // item.input.onDown.add(this.start_swipe, this);
+    // item.input.onUp.add(this.end_swipe, this);
 
     item.reset(320, 460);
     item.body.velocity.x = -50;
   },
 
   scorePoint: function(){
-  	alert('you scored')
+  	console.log('you scored')
   },
     start_swipe: function (pointer) {
 	    "use strict";
@@ -149,7 +130,49 @@ var GameState = {
 	        // cut = new FruitNinja.Cut(this, "cut", {x: 0, y: 0}, {group: "cuts", start: this.start_swipe_point, end: this.end_swipe_point, duration: 0.3, style: cut_style});
 	        this.swipe = new Phaser.Line(this.start_swipe_point.x, this.start_swipe_point.y, this.end_swipe_point.x, this.end_swipe_point.y);
 	    }
-	}
+	},
+    onDown: function (sprite, pointer) {
+        result = "Down " + sprite.key;
+        console.log('down', sprite.key);
+    },
+
+    onDragStart:function (sprite, pointer) {
+        // console.log(sprite)
+        this.dragStart = {};
+        this.dragStart.x = pointer.x;
+        this.dragStart.y = pointer.y;
+
+        result = sprite.key + " started at x:" + pointer.x + " y: " + pointer.y;
+        console.log(result)
+    },
+
+    dragUpdate: function (sprite, pointer, dragX, dragY, snapPoint) {
+        //  As we drag the ship around inc the angle
+        // angle += 0.01;
+
+        // //  This just circles the copySprite around the sprite being dragged
+        // copySprite.x = dragSprite.x + 220 * Math.cos(angle);
+        // copySprite.y = dragSprite.y + 220 * Math.sin(angle);
+
+        // //  And this points the copySprite at the current pointer
+        // copySprite.rotation = game.physics.arcade.angleToPointer(copySprite);
+    },
+
+    onDragStop: function (sprite, pointer) {
+        result = sprite.key + " dropped at x:" + pointer.x + " y: " + pointer.y;
+        var directionX = -1 * (this.dragStart.x - pointer.x);
+        var directionY = -1 * (this.dragStart.y - pointer.y);
+        // sprite.body.allowGravity = false;
+        // sprite.body.velocity.x = 0;
+        sprite.body.velocity.set(directionX * 10, directionY * 10);
+        console.log(directionY)
+        // if (pointer.y > 400)
+        // {
+        //     console.log('input disabled on', sprite.key);
+        //     // sprite.input.enabled = false;
+        //     // sprite.sendToBack();
+        // }
+    }
 };
 
 var game = new Phaser.Game(360, 592, Phaser.AUTO);

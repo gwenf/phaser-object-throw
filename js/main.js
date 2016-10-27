@@ -120,56 +120,43 @@ var GameState = {
     update: function() {
         this.game.physics.arcade.collide(this.items, this.ground);
         // this.game.physics.arcade.collide(this.player, this.platforms);
-
-        this.game.physics.arcade.overlap(this.items, this.bin1, this.scorePoint, null, this);
-        this.game.physics.arcade.overlap(this.items, this.bin2, this.scorePoint, null, this);
-        this.game.physics.arcade.overlap(this.items, this.bin3, this.scorePoint, null, this);
+        this.game.physics.arcade.overlap(this.items, [this.bin1, this.bin2, this.bin3], this.scorePoint, null, this);
         // game.physics.arcade.overlap(this.items, this.bin1, this.collisionHandler, null, this);
         this.game.physics.arcade.overlap(this.items, this.wall, this.killItem, null, this);
-
-        // this.enemy.body.collideWorldBounds = true;
-        // this.enemy.body.velocity.x = 50;
-
-        var that = this;
-
-        this.items.forEach(function(element){
-            this.game.physics.arcade.overlap(element, this.enemy, this.killItem, null, this);
-            this.game.physics.arcade.overlap(element, this.enemy2, this.killItem, null, this);
-            element.events.onOutOfBounds.add(function(item){console.log(item);}, element);
-
-            // this.game.physics.arcade.overlap(element, this.wallRight, this.killItem, null, this);
-            // element.checkWorldBounds = true;
-            // element.onOutOfBounds.add(this.killItem, this);
-            if(element.x < 0 || element.x > 360) {
-                element.kill();
-
-                // this.killItem(element)
-            }
-        }, this);
+        this.game.physics.arcade.overlap(this.items, [this.enemy, this.enemy2], this.killItem, null, this);
     },
 
     createItem: function() {
         //give me the first dead sprite
         var item = this.items.getFirstExists(false);
 
-        if(!item) {
+        if (!item) {
           item = this.items.create(0, 0, 'item');
+
+          // Add event listeners only once.
+          // They persist through kill/reset().
+
+          item.name = 'item' + item.z;
+          item.checkWorldBounds = true;
+          item.events.onOutOfBounds.add(this.killItem, this);
+
+          item.inputEnabled = true;
+          item.input.enableDrag(true);
+          item.events.onDragStart.add(this.onDragStart, this);
+          item.events.onDragUpdate.add(this.dragUpdate, this);
+          item.events.onDragStop.add(this.onDragStop, this);
+          // item.input.onDown.add(this.start_swipe, this);
+          // item.input.onUp.add(this.end_swipe, this);
         }
 
-        // item.body.collideWorldBounds = true;
-        // item.body.bounce.set(1, 0);
-        item.inputEnabled = true;
-        item.input.enableDrag(true);
-        item.events.onDragStart.add(this.onDragStart, this);
-        item.events.onDragUpdate.add(this.dragUpdate, this);
-        item.events.onDragStop.add(this.onDragStop, this);
-        // item.checkWorldBounds = true;
-        // item.events.onOutOfBounds.add(this.killItem, this);
-        // item.input.onDown.add(this.start_swipe, this);
-        // item.input.onUp.add(this.end_swipe, this);
-
         item.reset(320, 460);
+
         item.body.velocity.x = -50;
+
+        console.assert(item.checkWorldBounds === true, 'item has checkWorldBounds');
+        console.assert(item.events.onOutOfBounds.getNumListeners() == 1, 'item has 1 onOutOfBounds listener');
+        console.assert(item.events.onOutOfBounds.has(this.killItem, this), 'item has killItem() attached to onOutOfBounds');
+        console.log('createItem', item.name);
     },
 
     scorePoint: function(bin, item){
@@ -184,7 +171,7 @@ var GameState = {
         item.kill();
         this.itemsWasted++;
         this.itemsWastedText.setText("You have wasted \n" + this.itemsWasted + " items :(");
-        console.log('killed');
+        console.log('killed', item.name);
     },
     start_swipe: function (pointer) {
 	    "use strict";

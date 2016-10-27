@@ -73,6 +73,20 @@ var GameState = {
         this.bin3.body.allowGravity = false;
         this.bin3.scale.setTo(1.5, 1);
 
+        this.wall = this.add.sprite(1, 0, 'platform');
+        this.game.physics.arcade.enable(this.wall);
+        this.wall.body.allowGravity = false;
+        this.wall.body.immovable = true;
+        this.wall.scale.setTo(3, 0.8);
+        this.wall.angle = 90;
+
+        this.wallRight = this.add.sprite(383, 0, 'platform');
+        this.game.physics.arcade.enable(this.wallRight);
+        this.wallRight.body.allowGravity = false;
+        this.wallRight.body.immovable = true;
+        this.wallRight.scale.setTo(3, 0.8);
+        this.wallRight.angle = 90;
+
         // this.item = this.add.sprite(360, 540, 'item');
         // this.game.physics.arcade.enable(this.item);
         // this.item.body.velocity.x = -80;
@@ -87,8 +101,17 @@ var GameState = {
         this.enemy.body.velocity.x = 80;
         this.enemy.body.bounce.set(1, 0);
 
+        this.enemy2 = this.add.sprite(300, 240, 'enemy');
+        this.game.physics.arcade.enable(this.enemy2);
+        this.enemy2.body.immovable = true;
+        this.enemy2.body.allowGravity = false;
+        this.enemy2.body.collideWorldBounds = true;
+        this.enemy2.body.velocity.x = 120;
+        this.enemy2.body.bounce.set(1, 0);
+
         this.items = this.add.group();
         this.items.enableBody = true;
+        // this.items.setAll('checkWorldBounds', true);
 
         this.createItem();
         this.itemCreator = this.game.time.events.loop(Phaser.Timer.SECOND * 3, this.createItem, this)
@@ -101,18 +124,26 @@ var GameState = {
         this.game.physics.arcade.overlap(this.items, this.bin1, this.scorePoint, null, this);
         this.game.physics.arcade.overlap(this.items, this.bin2, this.scorePoint, null, this);
         this.game.physics.arcade.overlap(this.items, this.bin3, this.scorePoint, null, this);
-        // this.game.physics.arcade.overlap(this.items, this.bin2, this.scorePoint);
-        // this.game.physics.arcade.overlap(this.items, this.bin3, this.scorePoint);
         // game.physics.arcade.overlap(this.items, this.bin1, this.collisionHandler, null, this);
-        // this.game.physics.arcade.overlap(this.player, this.barrels, this.killPlayer);
+        this.game.physics.arcade.overlap(this.items, this.wall, this.killItem, null, this);
 
         // this.enemy.body.collideWorldBounds = true;
         // this.enemy.body.velocity.x = 50;
 
+        var that = this;
+
         this.items.forEach(function(element){
             this.game.physics.arcade.overlap(element, this.enemy, this.killItem, null, this);
-            if(element.x < 0) {
+            this.game.physics.arcade.overlap(element, this.enemy2, this.killItem, null, this);
+            element.events.onOutOfBounds.add(function(item){console.log(item);}, element);
+
+            // this.game.physics.arcade.overlap(element, this.wallRight, this.killItem, null, this);
+            // element.checkWorldBounds = true;
+            // element.onOutOfBounds.add(this.killItem, this);
+            if(element.x < 0 || element.x > 360) {
                 element.kill();
+
+                // this.killItem(element)
             }
         }, this);
     },
@@ -132,6 +163,8 @@ var GameState = {
         item.events.onDragStart.add(this.onDragStart, this);
         item.events.onDragUpdate.add(this.dragUpdate, this);
         item.events.onDragStop.add(this.onDragStop, this);
+        // item.checkWorldBounds = true;
+        // item.events.onOutOfBounds.add(this.killItem, this);
         // item.input.onDown.add(this.start_swipe, this);
         // item.input.onUp.add(this.end_swipe, this);
 
@@ -147,6 +180,7 @@ var GameState = {
       	console.log('you scored', bin, this.points)
     },
     killItem: function(item, enemy){
+        console.log('waste')
         item.kill();
         this.itemsWasted++;
         this.itemsWastedText.setText("You have wasted \n" + this.itemsWasted + " items :(");

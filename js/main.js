@@ -73,19 +73,19 @@ var GameState = {
         this.bin3.body.allowGravity = false;
         this.bin3.scale.setTo(1.5, 1);
 
-        this.wall = this.add.sprite(1, 0, 'platform');
-        this.game.physics.arcade.enable(this.wall);
-        this.wall.body.allowGravity = false;
-        this.wall.body.immovable = true;
-        this.wall.scale.setTo(3, 0.8);
-        this.wall.angle = 90;
+        // this.wall = this.add.sprite(1, 0, 'platform');
+        // this.game.physics.arcade.enable(this.wall);
+        // this.wall.body.allowGravity = false;
+        // this.wall.body.immovable = true;
+        // this.wall.scale.setTo(3, 0.8);
+        // this.wall.angle = 90;
 
-        this.wallRight = this.add.sprite(383, 0, 'platform');
-        this.game.physics.arcade.enable(this.wallRight);
-        this.wallRight.body.allowGravity = false;
-        this.wallRight.body.immovable = true;
-        this.wallRight.scale.setTo(3, 0.8);
-        this.wallRight.angle = 90;
+        // this.wallRight = this.add.sprite(383, 0, 'platform');
+        // this.game.physics.arcade.enable(this.wallRight);
+        // this.wallRight.body.allowGravity = false;
+        // this.wallRight.body.immovable = true;
+        // this.wallRight.scale.setTo(3, 0.8);
+        // this.wallRight.angle = 90;
 
         // this.item = this.add.sprite(360, 540, 'item');
         // this.game.physics.arcade.enable(this.item);
@@ -114,16 +114,21 @@ var GameState = {
         // this.items.setAll('checkWorldBounds', true);
 
         this.createItem();
-        this.itemCreator = this.game.time.events.loop(Phaser.Timer.SECOND * 3, this.createItem, this)
+        this.itemCreator = this.game.time.events.loop(Phaser.Timer.SECOND * 2, this.createItem, this)
     },
 
     update: function() {
         this.game.physics.arcade.collide(this.items, this.ground);
         // this.game.physics.arcade.collide(this.player, this.platforms);
         this.game.physics.arcade.overlap(this.items, [this.bin1, this.bin2, this.bin3], this.scorePoint, null, this);
-        // game.physics.arcade.overlap(this.items, this.bin1, this.collisionHandler, null, this);
-        this.game.physics.arcade.overlap(this.items, this.wall, this.killItem, null, this);
+        // this.game.physics.arcade.overlap(this.items, this.wall, this.killItem, null, this);
         this.game.physics.arcade.overlap(this.items, [this.enemy, this.enemy2], this.killItem, null, this);
+
+        this.items.children.map(function(item){ //checks to make sure that items don't stand still on conveyer
+            if (item.body.velocity.x <= 0 && item.body.velocity.y === 0){
+                item.body.velocity.x = -50;
+            }
+        })
     },
 
     createItem: function() {
@@ -143,7 +148,7 @@ var GameState = {
           item.inputEnabled = true;
           item.input.enableDrag(true);
           item.events.onDragStart.add(this.onDragStart, this);
-          item.events.onDragUpdate.add(this.dragUpdate, this);
+          // item.events.onDragUpdate.add(this.dragUpdate, this);
           item.events.onDragStop.add(this.onDragStop, this);
           // item.input.onDown.add(this.start_swipe, this);
           // item.input.onUp.add(this.end_swipe, this);
@@ -164,10 +169,10 @@ var GameState = {
         item.kill();
         this.pointText.setText("You have recycled \n" + this.points + " items!");
         // game.input.onDown.addOnce(this.updatePointText, this);
-      	console.log('you scored', bin, this.points)
+      	console.log('you scored ', bin, this.points);
     },
     killItem: function(item, enemy){
-        console.log('waste')
+        console.log('waste: ', item, enemy)
         item.kill();
         this.itemsWasted++;
         this.itemsWastedText.setText("You have wasted \n" + this.itemsWasted + " items :(");
@@ -183,10 +188,14 @@ var GameState = {
 	    this.end_swipe_point = new Phaser.Point(pointer.x, pointer.y);
 	    swipe_length = Phaser.Point.distance(this.end_swipe_point, this.start_swipe_point);
 	    // if the swipe length is greater than the minimum, a swipe is detected
+        if (this.start_swipe_point.y > this.end_swipe_point.y){
+            var currentSprite = game.physics.box2d.getBodiesAtPoint(this.end_swipe_point.x, this.end_swipe_point.y);
+            console.log('current sprite: ',currentSprite)
+        }
 	    if (swipe_length >= this.MINIMUM_SWIPE_LENGTH) {
 	    	console.log(swipe_length)
 	        // create a new line as the swipe and check for collisions
-	        cut_style = {line_width: 5, color: 0xE82C0C, alpha: 1}
+	        // cut_style = {line_width: 5, color: 0xE82C0C, alpha: 1}
 	        // cut = new FruitNinja.Cut(this, "cut", {x: 0, y: 0}, {group: "cuts", start: this.start_swipe_point, end: this.end_swipe_point, duration: 0.3, style: cut_style});
 	        this.swipe = new Phaser.Line(this.start_swipe_point.x, this.start_swipe_point.y, this.end_swipe_point.x, this.end_swipe_point.y);
 	    }
@@ -206,18 +215,6 @@ var GameState = {
         console.log(result)
     },
 
-    dragUpdate: function (sprite, pointer, dragX, dragY, snapPoint) {
-        //  As we drag the ship around inc the angle
-        // angle += 0.01;
-
-        // //  This just circles the copySprite around the sprite being dragged
-        // copySprite.x = dragSprite.x + 220 * Math.cos(angle);
-        // copySprite.y = dragSprite.y + 220 * Math.sin(angle);
-
-        // //  And this points the copySprite at the current pointer
-        // copySprite.rotation = game.physics.arcade.angleToPointer(copySprite);
-    },
-
     onDragStop: function (sprite, pointer) {
         result = sprite.key + " dropped at x:" + pointer.x + " y: " + pointer.y;
         var directionX = -1 * (this.dragStart.x - pointer.x);
@@ -231,16 +228,6 @@ var GameState = {
         //     console.log('input disabled on', sprite.key);
         //     // sprite.input.enabled = false;
         //     // sprite.sendToBack();
-        // }
-    },
-    collisionHandler: function (items, bin) {
-        console.log('collision')
-        //  If the player collides with the chillis then they get eaten :)
-        //  The chilli frame ID is 17
-
-        // if (veg.frame == 17)
-        // {
-        //     veg.kill();
         // }
     }
 };
